@@ -3,55 +3,54 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Al-Qasr Dahab — POS & Inventory</title>
+  <title>Al Qasr Restaurant & Cafe — POS & Inventory · مطعم وكافيه القصر</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="login" id="login">
     <div class="login-card" id="login-card">
       <div class="brand-mark" style="margin:0 auto 14px">A</div>
-      <h2>Al-Qasr Dahab</h2>
-      <p class="login-sub">Owner access only — sign in to continue</p>
+      <h2>Al Qasr Restaurant & Cafe · مطعم وكافيه القصر</h2>
+      <p class="login-sub">Owner access only — sign in to continue · دخول المالك فقط — سجّل للمتابعة</p>
       <form data-form="login">
-        <p class="login-error" id="login-error">Wrong email or password — try again</p>
-        <label class="field"><span>Email</span><input type="email" name="email" required placeholder="admin@qasr.com"></label>
-        <label class="field"><span>Password</span>
+        <p class="login-error" id="login-error">Wrong email or password — try again · البريد أو كلمة السر غير صحيحة</p>
+        <label class="field"><span>Email · البريد الإلكتروني</span><input type="email" name="email" required placeholder="admin@qasr.com"></label>
+        <label class="field"><span>Password · كلمة السر</span>
           <div class="pass-wrap">
             <input type="password" name="pass" id="login-pass" required placeholder="••••••••">
-            <button type="button" class="pass-toggle" data-action="toggle-pass">Show</button>
+            <button type="button" class="pass-toggle" data-action="toggle-pass">Show · إظهار</button>
           </div>
         </label>
-        <button class="btn block" type="submit">Sign in</button>
+        <button class="btn block" type="submit">Sign in · تسجيل الدخول</button>
       </form>
     </div>
   </div>
   <div class="shell">
     <aside class="side">
-      <div class="brand"><div class="brand-mark">A</div><div><strong id="brand-name">Al-Qasr Dahab</strong><small>POS SYSTEM</small></div></div>
-      <div class="nav-label">Operations</div>
-      <button class="nav-item" data-view="pos"><span class="nav-icon">▣</span>POS</button>
-      <button class="nav-item" data-view="cashier"><span class="nav-icon">◉</span>Cashier</button>
-      <button class="nav-item" data-view="kitchen"><span class="nav-icon">♨</span>Kitchen</button>
-      <button class="nav-item" data-view="bar"><span class="nav-icon">⚱</span>Bar</button>
-      <button class="nav-item" data-view="shisha"><span class="nav-icon">♢</span>Shisha</button>
-      <div class="nav-label">Management</div>
-      <button class="nav-item active" data-view="dashboard"><span class="nav-icon">▥</span>Dashboard</button>
-      <button class="nav-item" data-view="menu"><span class="nav-icon">▤</span>Menu Items</button>
-      <button class="nav-item" data-view="inventory"><span class="nav-icon">◇</span>Inventory</button>
-      <button class="nav-item" data-view="prep"><span class="nav-icon">✎</span>Prep List</button>
-      <div class="nav-label">Finance</div>
-      <button class="nav-item" data-view="shifts"><span class="nav-icon">◫</span>Cash Shifts</button>
-      <button class="nav-item" data-view="reports"><span class="nav-icon">▰</span>Reports</button>
-      <button class="nav-item" data-view="settings"><span class="nav-icon">⚙</span>Settings</button>
-      <div class="side-bottom"><div class="user"><div class="avatar">OH</div><div><b>Omar Hamid</b><small>Restaurant owner</small></div></div><button class="logout-btn" data-action="logout">⏻ Sign out</button></div>
+      <div class="brand"><div class="brand-mark">A</div><div><strong id="brand-name">Al Qasr Restaurant & Cafe</strong><small>POS SYSTEM · نظام البيع</small></div></div>
+      <div class="nav-label">Operations · التشغيل</div>
+      <button class="nav-item" data-view="pos"><span class="nav-icon">▣</span>POS · نقطة البيع</button>
+      <button class="nav-item" data-view="cashier"><span class="nav-icon">◉</span>Cashier · الكاشير</button>
+      <button class="nav-item" data-view="kitchen"><span class="nav-icon">♨</span>Kitchen · المطبخ</button>
+      <button class="nav-item" data-view="bar"><span class="nav-icon">⚱</span>Bar · البار</button>
+      <div class="nav-label">Management · الإدارة</div>
+      <button class="nav-item active" data-view="dashboard"><span class="nav-icon">▥</span>Dashboard · لوحة التحكم</button>
+      <button class="nav-item" data-view="menu"><span class="nav-icon">▤</span>Menu Items · المنيو</button>
+      <button class="nav-item" data-view="inventory"><span class="nav-icon">◇</span>Inventory · المخزون</button>
+      <button class="nav-item" data-view="prep"><span class="nav-icon">✎</span>Prep List · التحضير</button>
+      <div class="nav-label">Finance · المالية</div>
+      <button class="nav-item" data-view="shifts"><span class="nav-icon">◫</span>Cash Shifts · الورديات</button>
+      <button class="nav-item" data-view="reports"><span class="nav-icon">▰</span>Reports · التقارير</button>
+      <button class="nav-item" data-view="settings"><span class="nav-icon">⚙</span>Settings · الإعدادات</button>
+      <div class="side-bottom"><div class="user"><div class="avatar">OH</div><div><b>Omar Hamid</b><small>Restaurant owner · مالك المطعم</small></div></div><button class="logout-btn" data-action="logout">⏻ Sign out · خروج</button></div>
     </aside>
     <main class="main">
       <header class="topbar">
-        <div><div class="eyebrow">AL-QASR POS SYSTEM · CAIRO</div><h1 id="page-title">Dashboard</h1></div>
+        <div><div class="eyebrow">AL-QASR POS SYSTEM · CAIRO · القاهرة</div><h1 id="page-title">Dashboard · لوحة التحكم</h1></div>
         <div class="top-actions">
-          <button class="date-pill" data-action="toast" data-msg="Date filter: Today">Today <span>⌄</span></button>
-          <button class="icon-btn notification" data-action="toast" data-msg="3 alerts: 2 low-stock items, 1 ticket waiting 15+ min">♧</button>
-          <button class="icon-btn" data-action="toast" data-msg="Search is ready">⌕</button>
+          <button class="date-pill" data-action="toast" data-msg="Date filter: Today · تصفية التاريخ: اليوم">Today · اليوم <span>⌄</span></button>
+          <button class="icon-btn notification" data-action="toast" data-msg="3 alerts: 2 low-stock items, 1 ticket waiting 15+ min · ٣ تنبيهات: صنفين ناقصين وتذكرة منتظرة ربع ساعة">♧</button>
+          <button class="icon-btn" data-action="toast" data-msg="Search is ready · البحث جاهز">⌕</button>
         </div>
       </header>
       <div id="view"></div>
