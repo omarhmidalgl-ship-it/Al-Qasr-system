@@ -239,6 +239,15 @@ table.tbl{width:100%;border-collapse:collapse;font-size:12px;min-width:620px}
 .shake{animation:shake .35s}
 @keyframes shake{20%,60%{transform:translateX(-8px)}40%,80%{transform:translateX(8px)}}
 .btn.block{width:100%;padding:12px;margin-top:4px}
+.role-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:20px}
+.role-btn{background:#fff;border:2px solid #eef1f6;border-radius:12px;padding:16px 12px;cursor:pointer;text-align:center;display:flex;flex-direction:column;align-items:center;gap:4px;transition:.15s}
+.role-btn:hover{border-color:var(--coral);background:#fff8f6;transform:translateY(-2px)}
+.role-icon{font-size:28px}
+.role-btn b{font-size:13px;color:var(--ink)}
+.role-btn small{font-size:10px;color:var(--muted);font-weight:400}
+.role-btn[data-role="owner"]{grid-column:span 2}
+.switch-role-btn{font-size:10px;color:var(--muted);background:transparent;border:none;cursor:pointer;padding:4px 8px;border-radius:6px}
+.switch-role-btn:hover{background:#eef1f6;color:var(--ink)}
 
 .logout-btn{width:calc(100% - 22px);margin:10px 11px 2px;background:transparent;color:#8c9ab0;font-size:10px;font-weight:700;padding:8px;border-radius:8px;display:block;text-align:center}
 .logout-btn:hover{background:#3a2422;color:var(--coral)}

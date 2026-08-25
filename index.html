@@ -25,24 +25,32 @@
       </form>
     </div>
   </div>
-  <div class="shell">
+  <div class="login" id="role-picker" style="display:none">
+    <div class="login-card">
+      <div class="brand-mark" style="margin:0 auto 14px">A</div>
+      <h2>Who's logging in? · مين بيدخل؟</h2>
+      <p class="login-sub">Choose your role to continue · اختر دورك للمتابعة</p>
+      <div class="role-grid">
+        <button class="role-btn" data-role="owner"><span class="role-icon">👑</span><b>Owner · المالك</b><small>Full access · وصول كامل</small></button>
+        <button class="role-btn" data-role="cashier"><span class="role-icon">💳</span><b>Cashier · الكاشير</b><small>POS + Reports · بيع وتقارير</small></button>
+        <button class="role-btn" data-role="kitchen"><span class="role-icon">👨‍🍳</span><b>Kitchen · المطبخ</b><small>Board + Prep · لوحة + تحضير</small></button>
+        <button class="role-btn" data-role="bar"><span class="role-icon">🍸</span><b>Bar · البار</b><small>Board · لوحة البار</small></button>
+        <button class="role-btn" data-role="captain"><span class="role-icon">🍽️</span><b>Captain · كابتن الصالة</b><small>POS + Kitchen + Menu · بيع + مطبخ + منيو</small></button>
+      </div>
+      <button class="pill" style="margin-top:18px;color:var(--muted)" data-action="role-back">← Back to login · رجوع</button>
+    </div>
+  </div>
+  <div class="shell" id="shell" style="display:none">
     <aside class="side">
       <div class="brand"><div class="brand-mark">A</div><div><strong id="brand-name">Al Qasr Restaurant & Cafe</strong><small>POS SYSTEM · نظام البيع</small></div></div>
-      <div class="nav-label">Operations · التشغيل</div>
-      <button class="nav-item" data-view="pos"><span class="nav-icon">▣</span>POS · نقطة البيع</button>
-      <button class="nav-item" data-view="cashier"><span class="nav-icon">◉</span>Cashier · الكاشير</button>
-      <button class="nav-item" data-view="kitchen"><span class="nav-icon">♨</span>Kitchen · المطبخ</button>
-      <button class="nav-item" data-view="bar"><span class="nav-icon">⚱</span>Bar · البار</button>
-      <div class="nav-label">Management · الإدارة</div>
-      <button class="nav-item active" data-view="dashboard"><span class="nav-icon">▥</span>Dashboard · لوحة التحكم</button>
-      <button class="nav-item" data-view="menu"><span class="nav-icon">▤</span>Menu Items · المنيو</button>
-      <button class="nav-item" data-view="inventory"><span class="nav-icon">◇</span>Inventory · المخزون</button>
-      <button class="nav-item" data-view="prep"><span class="nav-icon">✎</span>Prep List · التحضير</button>
-      <div class="nav-label">Finance · المالية</div>
-      <button class="nav-item" data-view="shifts"><span class="nav-icon">◫</span>Cash Shifts · الورديات</button>
-      <button class="nav-item" data-view="reports"><span class="nav-icon">▰</span>Reports · التقارير</button>
-      <button class="nav-item" data-view="settings"><span class="nav-icon">⚙</span>Settings · الإعدادات</button>
-      <div class="side-bottom"><div class="user"><div class="avatar">OH</div><div><b>Omar Hamid</b><small>Restaurant owner · مالك المطعم</small></div></div><button class="logout-btn" data-action="logout">⏻ Sign out · خروج</button></div>
+      <div id="side-nav"></div>
+      <div class="side-bottom">
+        <div class="user"><div class="avatar" id="side-avatar">AH</div><div><b id="side-user-name">Ahmed Mahmoud</b><small id="side-user-role">Owner · مالك</small></div></div>
+        <div style="display:flex;gap:4px;align-items:center">
+          <button class="switch-role-btn" data-action="switch-role" title="Switch role · تبديل الدور">⇄</button>
+          <button class="logout-btn" data-action="logout">⏻</button>
+        </div>
+      </div>
     </aside>
     <main class="main">
       <header class="topbar">

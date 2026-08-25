@@ -7,14 +7,55 @@ const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({ '&': '&a
 const nowLabel = () => new Date().toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
 const KEY = 'qasr_state_v3';
 const AUTH_KEY = 'qasr_auth_v1';
+const ROLE_KEY = 'qasr_role';
 
-const OWNER = { email: 'admin@qasr.com', pass: 'changeme123' };
+const OWNER = { email: 'admin@qasr.com', pass:'changeme123' };
+
+let currentRole = null;
+
+const ROLE_VIEWS = {
+  owner:   ['pos','cashier','kitchen','bar','dashboard','menu','inventory','prep','shifts','reports','settings'],
+  cashier: ['pos','cashier','dashboard','menu','reports','inventory','shifts'],
+  kitchen: ['kitchen','menu','prep'],
+  bar:     ['bar','menu'],
+  captain: ['pos','kitchen','prep','dashboard','menu']
+};
+
+const ROLE_DEFAULT = { owner:'dashboard', cashier:'cashier', kitchen:'kitchen', bar:'bar', captain:'pos' };
+
+const ROLE_INFO = {
+  owner:   { name:'Ahmed Mahmoud · أحمد محمود', role:'Owner · مالك', ini:'AM' },
+  cashier: { name:'Cashier · الكاشير', role:'Cashier · كاشير', ini:'CA' },
+  kitchen: { name:'Kitchen Chef · شيف المطبخ', role:'Kitchen · المطبخ', ini:'KC' },
+  bar:     { name:'Bar Staff · موظف البار', role:'Bar · البار', ini:'BS' },
+  captain: { name:'Floor Captain · كابتن الصالة', role:'Captain · كابتن', ini:'FC' }
+};
 
 function isAuthed() {
   try { return localStorage.getItem(AUTH_KEY) === 'owner'; } catch (e) { return false; }
 }
+function getRole() {
+  try { return localStorage.getItem(ROLE_KEY); } catch (e) { return null; }
+}
+function setRole(r) {
+  try { localStorage.setItem(ROLE_KEY, r); } catch (e) {}
+  currentRole = r;
+}
+function clearRole() {
+  try { localStorage.removeItem(ROLE_KEY); } catch (e) {}
+  currentRole = null;
+}
+function canView(view) {
+  if (!currentRole) return false;
+  return (ROLE_VIEWS[currentRole] || []).includes(view);
+}
+function canEdit() {
+  return currentRole === 'owner' || currentRole === 'cashier';
+}
 function showLogin() { q('#login').style.display = 'grid'; }
 function hideLogin() { q('#login').style.display = 'none'; }
+function showRolePicker() { q('#role-picker').style.display = 'grid'; }
+function hideRolePicker() { q('#role-picker').style.display = 'none'; }
 
 const API_MODE = typeof location !== 'undefined' && location.protocol.startsWith('http');
 let SERVER = false;
@@ -264,8 +305,48 @@ function applySettings() {
   document.title = settings.name + ' — POS & Inventory';
 }
 
+const NAV_ITEMS = [
+  { section: 'Operations · التشغيل', items: [
+    { id:'pos', icon:'▣', label:'POS · نقطة البيع' },
+    { id:'cashier', icon:'◉', label:'Cashier · الكاشير' },
+    { id:'kitchen', icon:'♨', label:'Kitchen · المطبخ' },
+    { id:'bar', icon:'⚱', label:'Bar · البار' }
+  ]},
+  { section: 'Management · الإدارة', items: [
+    { id:'dashboard', icon:'▥', label:'Dashboard · لوحة التحكم' },
+    { id:'menu', icon:'▤', label:'Menu Items · المنيو' },
+    { id:'inventory', icon:'◇', label:'Inventory · المخزون' },
+    { id:'prep', icon:'✎', label:'Prep List · التحضير' }
+  ]},
+  { section: 'Finance · المالية', items: [
+    { id:'shifts', icon:'◫', label:'Cash Shifts · الورديات' },
+    { id:'reports', icon:'▰', label:'Reports · التقارير' },
+    { id:'settings', icon:'⚙', label:'Settings · الإعدادات' }
+  ]}
+];
+
+function buildSidebar() {
+  const allowed = ROLE_VIEWS[currentRole] || [];
+  const ri = ROLE_INFO[currentRole] || ROLE_INFO.owner;
+  let html = '';
+  NAV_ITEMS.forEach(group => {
+    const visible = group.items.filter(it => allowed.includes(it.id));
+    if (!visible.length) return;
+    html += `<div class="nav-label">${group.section}</div>`;
+    visible.forEach(it => {
+      html += `<button class="nav-item" data-view="${it.id}"><span class="nav-icon">${it.icon}</span>${it.label}</button>`;
+    });
+  });
+  q('#side-nav').innerHTML = html;
+  q('#side-avatar').textContent = ri.ini;
+  q('#side-user-name').textContent = ri.name;
+  q('#side-user-role').textContent = ri.role;
+  qa('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === state.view));
+}
+
 function go(view) {
   closeModal();
+  if (currentRole && !canView(view)) { view = ROLE_DEFAULT[currentRole] || 'pos'; }
   state.view = view;
   qa('.nav-item').forEach(b => b.classList.toggle('active', b.dataset.view === view));
   render();
@@ -440,14 +521,16 @@ function menuPages() { return Math.max(1, Math.ceil(menuFiltered().length / stat
 
 function menuRows() {
   const list = menuFiltered();
-  if (!list.length) return '<tr><td colspan="5"><div class="empty">No items match — try a different search · لا توجد نتائج — جرّب بحثًا آخر</div></td></tr>';
+  const editable = canEdit();
+  const cols = editable ? 5 : 3;
+  if (!list.length) return `<tr><td colspan="${cols}"><div class="empty">No items match — try a different search · لا توجد نتائج — جرّب بحثًا آخر</div></td></tr>`;
   const start = (state.menuPage - 1) * state.menuPer;
   return list.slice(start, start + state.menuPer).map(m => `<tr>
     <td><b class="name">${esc(m.name)}</b>${m.ar ? `<span class="ar" dir="rtl" lang="ar">${esc(m.ar)}</span>` : ''}${m.desc ? `<span class="desc">${esc(m.desc)}</span>` : ''}</td>
     <td><span class="mc-tag">${catBi(m.cat)}</span></td>
     <td><b>${fmt(m.price)}</b></td>
-    <td><label class="switch"><input type="checkbox" data-change="avail" data-id="${m.id}"${m.avail ? ' checked' : ''}><i></i></label></td>
-    <td style="text-align:right;white-space:nowrap"><button class="icon-btn icon-sm" data-action="menu-edit" data-id="${m.id}" title="Edit">✎</button> <button class="icon-x" data-action="menu-del" data-id="${m.id}" title="Delete">✕</button></td>
+    ${editable ? `<td><label class="switch"><input type="checkbox" data-change="avail" data-id="${m.id}"${m.avail ? ' checked' : ''}><i></i></label></td>
+    <td style="text-align:right;white-space:nowrap"><button class="icon-btn icon-sm" data-action="menu-edit" data-id="${m.id}" title="Edit">✎</button> <button class="icon-x" data-action="menu-del" data-id="${m.id}" title="Delete">✕</button></td>` : ''}
   </tr>`).join('');
 }
 
@@ -485,12 +568,13 @@ function refreshMenuTable(resetPage) {
 }
 
 function rMenuItems() {
+  const editable = canEdit();
   return `<div class="toolbar">
       <input class="input grow" placeholder="Search menu items… · ابحث في المنيو" value="${esc(state.menuQ)}" data-input="menu-q">
       <select class="input" data-change="menu-cat">${['All'].concat(CATS).map(c => `<option value="${c}"${state.menuCat === c ? ' selected' : ''}>${c === 'All' ? 'All · الكل' : catBi(c)}</option>`).join('')}</select>
-      <button class="btn" data-action="menu-add-open">＋ Add item · إضافة صنف</button>
+      ${editable ? `<button class="btn" data-action="menu-add-open">＋ Add item · إضافة صنف</button>` : ''}
     </div>
-    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Item · الصنف</th><th>Category · الفئة</th><th>Price · السعر</th><th>Available · متاح</th><th></th></tr></thead><tbody id="menu-tbody">${menuRows()}</tbody></table></div>
+    <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Item · الصنف</th><th>Category · الفئة</th><th>Price · السعر</th>${editable ? '<th>Available · متاح</th><th></th>' : ''}</tr></thead><tbody id="menu-tbody">${menuRows()}</tbody></table></div>
     <div id="menu-pager" class="pager">${menuPager()}</div>`;
 }
 
@@ -592,11 +676,7 @@ function rReports() {
 }
 
 const TEAM = [
-  { ini: 'OH', name: 'Omar Hamid · عمر حميد', role: 'Owner · مالك' },
-  { ini: 'SA', name: 'Sara Adel · سارة عادل', role: 'Cashier · كاشير' },
-  { ini: 'MR', name: 'Mahmoud Reda · محمود رضا', role: 'Head chef · شيف التنفيذ' },
-  { ini: 'YS', name: 'Youssef Samir · يوسف سمير', role: 'Floor captain · كابتن صالة' },
-  { ini: 'AN', name: 'Aya Nabil · آية نبيل', role: 'Waitress · ويترس' }
+  { ini: 'AM', name: 'Ahmed Mahmoud · أحمد محمود', role: 'Owner · مالك' }
 ];
 
 function rSettings() {
@@ -665,7 +745,7 @@ function shiftOpenModal() {
   return `<form data-form="shift-open">
     <h3>Open cash shift · فتح وردية كاش</h3>
     <p class="sub">Count the drawer and record the opening float. · جرّد الدراج وسجّل مبلغ الافتتاح.</p>
-    <label class="field"><span>Cashier · الكاشير</span><input name="by" required value="Omar Hamid"></label>
+    <label class="field"><span>Cashier · الكاشير</span><input name="by" required value="Ahmed Mahmoud"></label>
     <label class="field"><span>Opening float · EGP · الافتتاحي بالجنيه</span><input name="float" type="number" min="0" required value="2000"></label>
     <div class="modal-actions"><button type="button" class="btn ghost" data-action="close-modal">Cancel · إلغاء</button><button class="btn" type="submit">Open shift · فتح الوردية</button></div>
   </form>`;
@@ -731,7 +811,7 @@ function checkoutModal() {
     <p class="sub">${cartCount()} items · أصناف · Total · الإجمالي ${fmt(tt.total)} · incl. service ${settings.service}% + VAT ${settings.vat}% · شامل الخدمة والضريبة</p>
     <div class="row2">
       <label class="field"><span>Type · النوع</span><select name="type">${ORDER_TYPES.map(t => `<option>${t}</option>`).join('')}</select></label>
-      <label class="field"><span>Staff · الموظف</span><select name="staff">${TEAM.map(s => `<option>${esc(s.name)}</option>`).join('')}</select></label>
+      <label class="field"><span>Staff · الموظف</span><input name="staff" placeholder="e.g. Sara · مثال: سارة"></label>
     </div>
     <div class="row2">
       <label class="field"><span>Room · الغرفة</span><select name="room"><option value="">—</option>${ROOMS.map(r => `<option>${r}</option>`).join('')}</select></label>
@@ -808,6 +888,20 @@ async function advanceTicket(id) {
 }
 
 function onClick(e) {
+  const roleEl = e.target.closest('[data-role]');
+  if (roleEl) {
+    const r = roleEl.dataset.role;
+    if (!ROLE_VIEWS[r]) return;
+    currentRole = r;
+    setRole(r);
+    hideRolePicker();
+    buildSidebar();
+    go(ROLE_DEFAULT[r]);
+    q('#shell').style.display = '';
+    const ri = ROLE_INFO[r];
+    toast('Welcome, ' + ri.role + ' · أهلاً بيك');
+    return;
+  }
   const el = e.target.closest('[data-action],[data-goto],[data-view]');
   if (!el) return;
   if (el.dataset.view) { go(el.dataset.view); return; }
@@ -825,7 +919,18 @@ function onClick(e) {
     }
     case 'logout':
       try { localStorage.removeItem(AUTH_KEY); } catch (e) {}
+      clearRole();
       location.reload();
+      break;
+    case 'switch-role':
+      clearRole();
+      q('#shell').style.display = 'none';
+      showRolePicker();
+      break;
+    case 'role-back':
+      try { localStorage.removeItem(AUTH_KEY); } catch (e) {}
+      hideRolePicker();
+      showLogin();
       break;
     case 'close-modal': closeModal(); break;
     case 'add': {
@@ -961,7 +1066,17 @@ async function onSubmit(e) {
       q('#login-error').classList.remove('show');
       hideLogin();
       f.reset();
-      toast('Welcome back, Omar — you are signed in as owner · أهلاً بعودتك يا عمر — داخل كمالك');
+      const savedRole = getRole();
+      if (savedRole && ROLE_VIEWS[savedRole]) {
+        currentRole = savedRole;
+        buildSidebar();
+        go(ROLE_DEFAULT[currentRole]);
+        q('#shell').style.display = '';
+        const ri = ROLE_INFO[currentRole];
+        toast('Welcome back, ' + (currentRole === 'owner' ? 'Ahmed' : ri.role) + ' · أهلاً بعودتك');
+      } else {
+        showRolePicker();
+      }
     } else {
       const err = q('#login-error');
       err.classList.add('show');
@@ -1120,7 +1235,20 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal()
   }
   if (!SERVER) load();
   applySettings();
+  if (isAuthed()) {
+    hideLogin();
+    const savedRole = getRole();
+    if (savedRole && ROLE_VIEWS[savedRole]) {
+      currentRole = savedRole;
+      buildSidebar();
+      go(ROLE_DEFAULT[currentRole]);
+      q('#shell').style.display = '';
+    } else {
+      showRolePicker();
+    }
+  } else {
+    showLogin();
+  }
   render();
   if (SERVER) toast('Connected · data saved to qasr.db · متصل — البيانات محفوظة في قاعدة البيانات');
-  if (isAuthed()) hideLogin(); else showLogin();
 })();
