@@ -212,7 +212,7 @@ table.tbl{width:100%;border-collapse:collapse;font-size:12px;min-width:620px}
 .row3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
 .check{display:flex;gap:8px;align-items:center;font-size:12px;margin:2px 0 14px}
 .check input{accent-color:var(--green);width:15px;height:15px}
-.modal-backdrop{position:fixed;inset:0;background:rgba(16,26,45,.72);display:none;place-items:center;z-index:50;padding:18px}
+.modal-backdrop{position:fixed;inset:0;background:rgba(16,26,45,.72);display:none;place-items:center;z-index:110;padding:18px}
 .modal-backdrop.open{display:grid}
 .modal{background:#fff;border-radius:16px;padding:22px;width:min(430px,100%);max-height:88vh;overflow:auto;box-shadow:0 24px 70px rgba(16,26,45,.35)}
 .modal h3{font:600 19px Georgia,serif;margin:0 0 4px}

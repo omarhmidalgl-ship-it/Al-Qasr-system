@@ -9,7 +9,7 @@ const KEY = 'qasr_state_v3';
 const AUTH_KEY = 'qasr_auth_v1';
 const ROLE_KEY = 'qasr_role';
 
-const OWNER = { email: 'admin@qasr.com', pass:'changeme123' };
+const OWNER = { email: 'admin@qasr.com', pass:'changeme123', adminPass:'mrahmed123' };
 
 let currentRole = null;
 
@@ -51,6 +51,33 @@ function canView(view) {
 }
 function canEdit() {
   return currentRole === 'owner' || currentRole === 'cashier';
+}
+function enterRole(r) {
+  currentRole = r;
+  setRole(r);
+  hideRolePicker();
+  buildSidebar();
+  go(ROLE_DEFAULT[r]);
+  q('#shell').style.display = '';
+  const ri = ROLE_INFO[r];
+  toast('Welcome, ' + ri.role + ' · أهلاً بيك');
+}
+function adminPassModal() {
+  return `<form data-form="admin-pass">
+    <h3>Owner access · دخول المالك</h3>
+    <p class="sub">Enter the admin password to continue · اكتب باسورد المالك للمتابعة</p>
+    <div class="pass-wrap">
+      <input type="password" name="adminpass" id="admin-pass" required placeholder="• Admin password · باسورد المالك">
+      <button type="button" class="pass-toggle" data-action="toggle-admin-pass">Show · إظهار</button>
+    </div>
+    <div class="modal-actions"><button type="button" class="btn ghost" data-action="close-modal">Cancel · إلغاء</button><button class="btn" type="submit">Enter · دخول</button></div>
+  </form>`;
+}
+function currentPass() { return (settings && settings.loginPass) || OWNER.pass; }
+function currentAdminPass() { return (settings && settings.adminPass) || OWNER.adminPass; }
+function setPasswords(loginP, adminP) {
+  settings.loginPass = loginP;
+  settings.adminPass = adminP;
 }
 function showLogin() { q('#login').style.display = 'grid'; }
 function hideLogin() { q('#login').style.display = 'none'; }
@@ -700,6 +727,13 @@ function rSettings() {
       <div class="panel"><div class="panel-top"><div><h3>Team · الفريق</h3><p class="panel-sub">People with access today · المتاحين على النظام اليوم</p></div><button class="pill" data-action="toast" data-msg="Team management coming soon · إدارة الفريق قريبًا">Manage · إدارة</button></div>
         <div class="orders" style="margin-top:6px">${TEAM.map(t => `<div class="order"><div class="avatar">${t.ini}</div><div class="order-info"><b>${t.name}</b><small>${t.role}</small></div><span class="status">Active · نشط</span></div>`).join('')}</div>
       </div>
+      ${currentRole === 'owner' ? `<div class="panel" style="margin-top:17px"><div class="panel-top"><div><h3>Security · الأمان</h3><p class="panel-sub">Owner-only — change login passwords · للمالك فقط — غيّر باسوردات الدخول</p></div></div>
+        <form data-form="passwords" style="margin-top:12px">
+          <label class="field"><span>New first-login password · باسورد الدخول الأول الجديد</span><input type="text" name="loginPass" placeholder="Everyone uses this to log in · الكل بيدخل بيه"></label>
+          <label class="field"><span>New admin (owner) password · باسورد المالك الجديد</span><input type="text" name="adminPass" placeholder="Only to enter the Owner interface · فقط للدخول لواجهة المالك"></label>
+          <button class="btn" type="submit">Update passwords · تحديث الباسوردات</button>
+        </form>
+      </div>` : ''}
       <div class="panel" style="margin-top:17px"><div class="panel-top"><div><h3>About money display · عن عرض الأسعار</h3></div></div>
         <p class="panel-sub" style="line-height:1.7;margin-top:12px">Every amount in this system is shown in Egyptian Pounds (E£). VAT and service charge are added automatically at checkout using the rates above.<br>كل المبالغ في النظام بالجنيه المصري — والضريبة والخدمة بيتضافوا تلقائي عند تأكيد الطلب حسب النسب اللي فوق.</p>
       </div>
@@ -892,14 +926,11 @@ function onClick(e) {
   if (roleEl) {
     const r = roleEl.dataset.role;
     if (!ROLE_VIEWS[r]) return;
-    currentRole = r;
-    setRole(r);
-    hideRolePicker();
-    buildSidebar();
-    go(ROLE_DEFAULT[r]);
-    q('#shell').style.display = '';
-    const ri = ROLE_INFO[r];
-    toast('Welcome, ' + ri.role + ' · أهلاً بيك');
+    if (r === 'owner') {
+      openModal(adminPassModal());
+      return;
+    }
+    enterRole(r);
     return;
   }
   const el = e.target.closest('[data-action],[data-goto],[data-view]');
@@ -912,6 +943,13 @@ function onClick(e) {
     case 'toast': toast(el.dataset.msg); break;
     case 'toggle-pass': {
       const p = q('#login-pass');
+      if (!p) break;
+      p.type = p.type === 'password' ? 'text' : 'password';
+      el.textContent = p.type === 'password' ? 'Show · إظهار' : 'Hide · إخفاء';
+      break;
+    }
+    case 'toggle-admin-pass': {
+      const p = q('#admin-pass');
       if (!p) break;
       p.type = p.type === 'password' ? 'text' : 'password';
       el.textContent = p.type === 'password' ? 'Show · إظهار' : 'Hide · إخفاء';
@@ -1061,7 +1099,7 @@ async function onSubmit(e) {
   if (kind === 'login') {
     const email = val('email').toLowerCase();
     const pass = String(d.get('pass') || '');
-    if (email === OWNER.email && pass === OWNER.pass) {
+    if (email === OWNER.email && pass === currentPass()) {
       try { localStorage.setItem(AUTH_KEY, 'owner'); } catch (e) {}
       q('#login-error').classList.remove('show');
       hideLogin();
@@ -1191,6 +1229,38 @@ async function onSubmit(e) {
     PREP.push(p);
     syncUp('prep', p); render();
     toast('Task added to the prep list · اتاضافت لقائمة التحضير');
+    return;
+  }
+
+  if (kind === 'admin-pass') {
+    const p = String(d.get('adminpass') || '');
+    if (p === currentAdminPass()) {
+      closeModal();
+      enterRole('owner');
+    } else {
+      const inp = q('#admin-pass');
+      if (inp) {
+        inp.value = '';
+        inp.focus();
+        inp.style.borderColor = '#e48667';
+        setTimeout(() => { inp.style.borderColor = ''; }, 800);
+      }
+      toast('Wrong admin password · باسورد المالك غلط');
+    }
+    return;
+  }
+
+  if (kind === 'passwords') {
+    if (currentRole !== 'owner') { toast('Only the owner can change passwords · للمالك فقط'); return; }
+    const lp = val('loginPass');
+    const ap = val('adminPass');
+    if (!lp && !ap) { toast('Type at least one new password · اكتب باسورد واحد جديد على الأقل'); return; }
+    if (lp) settings.loginPass = lp;
+    if (ap) settings.adminPass = ap;
+    save();
+    if (SERVER) post('settings', { settings }).catch(syncFail);
+    render();
+    toast((lp && ap ? 'Both passwords updated · اتحدثوا الاتنين' : lp ? 'First-login password updated · اتحدث باسورد الدخول' : 'Admin password updated · اتحدث باسورد المالك'));
     return;
   }
 
