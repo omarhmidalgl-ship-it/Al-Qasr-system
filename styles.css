@@ -23,9 +23,25 @@ button{font:inherit;border:0;cursor:pointer}
 .user b{font-size:10px}
 .user small{display:block;color:#8998ae;margin-top:2px;font-size:9px}
 
-.main{flex:1;min-width:0;padding:31px 39px 38px;position:relative;overflow:hidden}
-.main:before{content:"";position:absolute;right:-100px;top:-130px;width:480px;height:380px;background:#e4eee0;border-radius:50%;z-index:-1}
-.main:after{content:"";position:absolute;left:38%;bottom:-270px;width:680px;height:420px;background:#fff0df;border-radius:50%;z-index:-1}
+.main{flex:1;min-width:0;padding:31px 39px 38px;position:relative;overflow:hidden;background:
+  radial-gradient(1200px 700px at 88% -8%, rgba(214,161,56,.07), transparent 60%),
+  radial-gradient(900px 620px at -8% 108%, rgba(48,75,114,.06), transparent 55%),
+  radial-gradient(700px 480px at 108% 88%, rgba(228,238,224,.85), transparent 62%),
+  linear-gradient(180deg,#fbfcfe 0%, var(--paper) 100%)}
+.main:before{content:"";position:absolute;right:-100px;top:-130px;width:480px;height:380px;background:radial-gradient(circle at 35% 35%,#dfeadd,transparent 68%);border-radius:50%;z-index:-1;box-shadow:0 0 90px rgba(48,75,114,.06)}
+.main:after{content:"";position:absolute;left:38%;bottom:-270px;width:680px;height:420px;background:radial-gradient(circle at 50% 60%,#ffeede,transparent 68%);border-radius:50%;z-index:-1}
+/* elegant faint ornamental band along the lower edge */
+.main .deco-band{position:absolute;left:0;right:0;bottom:-6px;height:120px;pointer-events:none;z-index:-1;opacity:.5;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='600' height='120' viewBox='0 0 600 120'%3E%3Cg fill='none' stroke='%23d6a138' stroke-opacity='0.5' stroke-width='1'%3E%3Cpath d='M0 60q150 -34 300 -6t300 8'/%3E%3Cpath d='M0 84q150 -30 300 -4t300 6'/%3E%3Cpath d='M0 44q150 -30 300 -6t300 1' stroke-opacity='0.35'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat:repeat-x;background-position:bottom center;background-size:600px 120px}
+/* soft architectural corner ornament — top right */
+.main .deco-corner{position:absolute;top:0;right:0;width:300px;height:220px;pointer-events:none;z-index:-1;opacity:.4;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='220' viewBox='0 0 300 220'%3E%3Cg fill='none' stroke='%23304b72' stroke-opacity='0.4' stroke-width='1.4'%3E%3Ccircle cx='300' cy='0' r='150'/%3E%3Ccircle cx='300' cy='0' r='118' stroke-opacity='.3'/%3E%3Ccircle cx='300' cy='0' r='90' stroke-opacity='.25'/%3E%3Cpath d='M150 0v40M165 0v26M180 0v14'/%3E%3Cpath d='M300 150h-30M300 128h-20M300 108h-12' stroke-opacity='.35'/%3E%3Ccircle cx='300' cy='0' r='4' fill='%23d6a138' stroke='none'/%3E%3C/g%3E%3C/svg%3E");
+  background-position:top right;background-repeat:no-repeat}
+/* faint coffee-bean motif — bottom left */
+.main .deco-bean{position:absolute;left:46px;bottom:40px;width:170px;height:110px;pointer-events:none;z-index:-1;opacity:.34;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='170' height='110' viewBox='0 0 170 110'%3E%3Cg fill='none' stroke='%23d6a138' stroke-width='1.3'%3E%3Cg stroke-opacity='0.6'%3E%3Cellipse cx='26' cy='52' rx='13' ry='20'/%3E%3Cpath d='M26 36c3 5 3 27 0 32'/%3E%3Ctext x='40' y='56' font-size='7' fill='%23d6a138' stroke='none' font-family='Georgia' font-style='italic'%3Ecaf%C3%A9%3C/text%3E%3C/g%3E%3Cg stroke-opacity='0.4'%3E%3Cellipse cx='92' cy='78' rx='11' ry='17'/%3E%3Cpath d='M92 64c3 5 3 22 0 28'/%3E%3C/g%3E%3Cg stroke-opacity='0.3'%3E%3Cellipse cx='152' cy='42' rx='10' ry='15'/%3E%3Cpath d='M152 30c2 4 2 19 0 24'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:bottom left}
 .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:34px}
 .eyebrow{font-size:12px;color:var(--green);font-weight:700;letter-spacing:.3px;margin-bottom:7px}
 .topbar h1{font:600 29px Georgia,serif;margin:0;letter-spacing:-.7px}
