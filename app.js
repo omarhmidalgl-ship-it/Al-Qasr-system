@@ -415,6 +415,83 @@ function chart(labels, values, hotIdx) {
   return `<div class="chart">${labels.map((l, i) => `<div class="bar-group"><div class="bar${i === hotIdx ? ' hot' : ''}" style="height:${Math.max(8, Math.round(values[i] / max * 100))}%"></div><small>${l}</small></div>`).join('')}</div>`;
 }
 
+function csvEscape(v) {
+  const s = String(v == null ? '' : v);
+  return /[",\n\r]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
+}
+function downloadCsv(filename, header, rows) {
+  const lines = [header.map(csvEscape).join(','), ...rows.map(r => r.map(csvEscape).join(','))];
+  const blob = new Blob(['\ufeff' + lines.join('\n')], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  URL.revokeObjectURL(a.href);
+  a.remove();
+}
+function exportOrders() {
+  downloadCsv('al-qasr-orders.csv',
+    ['Order No', 'Type', 'Table', 'Room', 'Staff', 'Items', 'Total (EGP)', 'Paid (EGP)', 'Due (EGP)', 'Method', 'Status', 'Time'],
+    orders.map(o => [o.no, o.type, o.table || '', o.room || '', o.staff, o.items, o.total, o.paid, o.due, o.method, o.status, o.time]));
+}
+function exportRevenue() {
+  const r = RANGES[state.range];
+  downloadCsv('al-qasr-revenue.csv',
+    ['Metric', 'Value'],
+    [[r.label, r.rev + ' EGP'], ['Orders', r.orders], ['Average ticket', Math.round(r.rev / r.orders) + ' EGP'],
+     ['Top category', r.cat], ['Cash %', r.mix.Cash], ['Card %', r.mix.Card], ['Wallet %', r.mix.Wallet],
+     ['', ''],
+     ['Period', r.labels.join(' | ')],
+     ['Revenue', r.values.join(' | ')]].concat(r.top.map((t, i) => ['Best seller #' + (i + 1), t[0] + ' — ' + t[1] + ' EGP'])));
+}
+function exportInventory() {
+  downloadCsv('al-qasr-inventory.csv',
+    ['Item', 'Category', 'Qty', 'Unit', 'Par', 'Status'],
+    INV.map(i => {
+      const st = invStatus(i);
+      return [i.name, invCatBi(i.cat), i.qty, i.unit, i.par, st === 'Out' ? 'Out of stock' : st === 'Low' ? 'Low' : 'In stock'];
+    }));
+}
+function exportMenu() {
+  downloadCsv('al-qasr-menu.csv',
+    ['Item', 'Arabic Name', 'Category', 'Price (EGP)', 'Available'],
+    MENU.map(m => [m.name, m.ar || '', catBi(m.cat), m.price, m.avail ? 'Yes' : 'No']));
+}
+
+function orderHour(o) {
+  if (!o || typeof o.time !== 'string') return null;
+  const m = o.time.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i);
+  if (!m) return null;
+  let h = parseInt(m[1], 10) % 12;
+  if (/pm/i.test(m[3])) h += 12;
+  return h;
+}
+
+function busyHoursData() {
+  const buckets = new Array(24).fill(0);
+  let total = 0;
+  orders.forEach(o => { const h = orderHour(o); if (h != null) { buckets[h]++; total++; } });
+  const hours = [];
+  for (let i = 0; i < 24; i++) {
+    const label = (i % 12 === 0 ? 12 : i % 12) + (i < 12 ? 'AM' : 'PM');
+    hours.push({ label, count: buckets[i] });
+  }
+  return { hours, total };
+}
+
+function staffPerformanceData() {
+  const map = {};
+  orders.forEach(o => {
+    const s = (o.staff || '—').trim();
+    if (!map[s]) map[s] = { staff: s, orders: 0, items: 0, revenue: 0 };
+    map[s].orders++;
+    map[s].items += (o.items || 0);
+    map[s].revenue += (o.total || 0);
+  });
+  return Object.values(map).sort((a, b) => b.revenue - a.revenue).map(p => ({ ...p, avg: p.orders ? Math.round(p.revenue / p.orders) : 0 }));
+}
+
 function mixBg(mix) {
   const colors = ['var(--gold)', '#b9d0bd', '#e48667'];
   let acc = 0;
@@ -692,7 +769,13 @@ function rReports() {
   const avg = Math.round(r.rev / r.orders);
   const hot = r.values.indexOf(Math.max(...r.values));
   const mx = Math.max(...r.top.map(t => t[1]));
-  return `<section class="grid">
+  return `<div class="toolbar" style="margin-bottom:17px">
+      <button class="pill" data-action="export" data-type="orders">⤓ Orders · الطلبات</button>
+      <button class="pill" data-action="export" data-type="revenue">⤓ Revenue · الإيرادات</button>
+      <button class="pill" data-action="export" data-type="inventory">⤓ Inventory · المخزون</button>
+      <button class="pill" data-action="export" data-type="menu">⤓ Menu · المنيو</button>
+    </div>
+    <section class="grid">
       ${statCard(r.label + ' revenue · إيرادات ' + r.label, 'E£', fmt(r.rev), '↗ healthy · ممتاز', 'all channels · كل القنوات', true)}
       ${statCard('Orders · الطلبات', '◴', r.orders.toLocaleString('en-US'), '● ', r.label.toLowerCase(), true)}
       ${statCard('Average ticket · متوسط الفاتورة', '⌁', fmt(avg), '↗ steady · ثابت', 'per order · للطلب', true)}
@@ -713,6 +796,25 @@ function rReports() {
         <div class="panel" style="margin-top:17px"><div class="panel-top"><div><h3>Best sellers · الأكثر مبيعًا</h3><p class="panel-sub">Top 5 items by revenue · أعلى ٥ أصناف بالإيراد</p></div></div>
           <div style="margin-top:10px">${r.top.map(t => `<div class="rb"><div class="rb-top"><b>${t[0]}</b><span>${fmt(t[1])}</span></div><div class="rb-track"><div class="rb-fill" style="width:${Math.round(t[1] / mx * 100)}%"></div></div></div>`).join('')}</div>
         </div>
+      </div>
+    </section>
+    ${analyticsBlock()}`;
+}
+
+function analyticsBlock() {
+  const bh = busyHoursData();
+  const hp = staffPerformanceData();
+  const hMax = Math.max(...bh.hours.map(h => h.count), 1);
+  const pMax = hp.length ? Math.max(...hp.map(p => p.revenue), 1) : 1;
+  return `<section class="content-grid" style="margin-top:17px">
+      <div class="panel">
+        <div class="panel-top"><div><h3>Busiest hours · ساعات الذروة</h3><p class="panel-sub">Orders per hour from live records · عدد الطلبات كل ساعة من السجلات</p></div></div>
+        ${bh.total === 0 ? `<div class="empty">No timed orders yet — new orders will appear here<br>لسه مفيش طلبات بتوقيت — الطلبات الجديدة هتظهر هنا</div>` : `<div class="chart" style="height:150px">${bh.hours.map(h => `<div class="bar-group"><div class="bar${h.count === hMax && h.count > 0 ? ' hot' : ''}" style="height:${Math.max(6, Math.round(h.count / hMax * 100))}%"></div><small>${h.label}</small></div>`).join('')}</div>`}
+        <div class="legend"><span><i class="dot"></i>Peak · الذروة</span><span><i class="dot green"></i>Other · باقي</span><span style="margin-left:auto">${bh.total} orders · طلب</span></div>
+      </div>
+      <div class="panel">
+        <div class="panel-top"><div><h3>Staff performance · أداء الفريق</h3><p class="panel-sub">Order throughput by staff · الإنجاز لكل موظف</p></div></div>
+        ${hp.length === 0 ? `<div class="empty">No staff-assigned orders yet<br>لسه مفيش طلبات بموظف</div>` : hp.map(p => `<div class="rb"><div class="rb-top"><b>${esc(p.staff)}</b><span>${fmt(p.revenue)} · ${p.orders} orders · ${p.items} items</span></div><div class="rb-track"><div class="rb-fill" style="width:${Math.max(4, Math.round(p.revenue / pMax * 100))}%"></div></div><small style="color:var(--muted);font-size:10.5px">Avg ticket ${fmt(p.avg)} · متوسط الفاتورة</small></div>`).join('')}</div>
       </div>
     </section>`;
 }
@@ -956,6 +1058,17 @@ function onClick(e) {
   const id = el.dataset.id;
   switch (a) {
     case 'toast': toast(el.dataset.msg); break;
+    case 'export': {
+      const t = el.dataset.type;
+      try {
+        if (t === 'orders') exportOrders();
+        else if (t === 'revenue') exportRevenue();
+        else if (t === 'inventory') exportInventory();
+        else if (t === 'menu') exportMenu();
+        toast('File downloaded · اتنزّل الملف');
+      } catch (e) { toast('Export failed · فشل التصدير'); }
+      break;
+    }
     case 'theme-toggle':
       toggleTheme();
       break;
