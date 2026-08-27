@@ -8,6 +8,21 @@ const nowLabel = () => new Date().toLocaleTimeString('en-US', { hour: 'numeric',
 const KEY = 'qasr_state_v3';
 const AUTH_KEY = 'qasr_auth_v1';
 const ROLE_KEY = 'qasr_role';
+const THEME_KEY = 'qasr_theme';
+
+function applyTheme() {
+  let t = 'light';
+  try { t = localStorage.getItem(THEME_KEY) || 'light'; } catch (e) {}
+  if (document.documentElement) document.documentElement.setAttribute('data-theme', t);
+  const ic = q('#theme-icon');
+  if (ic) ic.textContent = t === 'dark' ? '☾' : '◐';
+}
+function toggleTheme() {
+  const cur = document.documentElement && document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
+  const next = cur === 'dark' ? 'light' : 'dark';
+  try { localStorage.setItem(THEME_KEY, next); } catch (e) {}
+  applyTheme();
+}
 
 const OWNER = { email: 'admin@qasr.com', pass:'changeme123', adminPass:'mrahmed123' };
 
@@ -941,6 +956,9 @@ function onClick(e) {
   const id = el.dataset.id;
   switch (a) {
     case 'toast': toast(el.dataset.msg); break;
+    case 'theme-toggle':
+      toggleTheme();
+      break;
     case 'toggle-pass': {
       const p = q('#login-pass');
       if (!p) break;
@@ -1305,6 +1323,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal()
   }
   if (!SERVER) load();
   applySettings();
+  applyTheme();
   if (isAuthed()) {
     hideLogin();
     const savedRole = getRole();
